@@ -15,10 +15,10 @@
   //#define     LED4      D5          // Connectivity With Client #3
   //#define     BUTTON    D8          // Connectivity ReInitiate Button
   #define OLED_RESET LED_BUILTIN
-  #define RELE1           D5
-  #define RELE2           D6
-  #define ventilacao      D8
-  #define refrigeracao    D7
+  #define RELE            D7
+  //#define RELE2           D6
+  //#define ventilacao      D8
+  //#define refrigeracao    D7
   #define DHTPIN          D3
   #define DHTTYPE         DHT22 //selecionar o tipo de sensor
   #define buttonPin_inc   D5   // the pin that the pushbutton is attached to
@@ -88,10 +88,10 @@ unsigned int localPort = 8888;  // local port to listen for UDP packets
     pinMode(buttonPin_inc, INPUT);
     pinMode(buttonPin_dec, INPUT);
     //pinMode(LED_BUILTIN, OUTPUT);
-    
-    pinMode(ventilacao, OUTPUT);
+    pinMode(RELE, OUTPUT);
+    /*pinMode(ventilacao, OUTPUT);
     digitalWrite(ventilacao, HIGH); 
-    pinMode(refrigeracao, OUTPUT);
+    pinMode(refrigeracao, OUTPUT);*/
     Serial.print("Temperatura atual (Set Point): ");
     Serial.println(setPoint);
     
@@ -141,7 +141,6 @@ unsigned int localPort = 8888;  // local port to listen for UDP packets
   // ********ponto certo**************
   void loop()
   {  
-
     CheckNewClients();
     Serial.print("Todos os clientes encontrados: [0]FALSE [1]TRUE: ");
     Serial.println(allNewClientsFound);
@@ -341,8 +340,9 @@ void tomada_decisao_manual(){
   exibe_display_manual();
   if(setPoint<=23.70){
     //TESTE COM LED
-    digitalWrite(ventilacao, HIGH);
-    digitalWrite(refrigeracao, LOW); //LED verde 
+    //digitalWrite(ventilacao, HIGH);
+    //digitalWrite(refrigeracao, LOW); //LED verde 
+    digitalWrite(RELE,HIGH);
     display.drawCircle(100,45,5,WHITE); //ESQ - VENT
     display.fillCircle(40,45,5,WHITE); //DIR - REFRIG
     
@@ -361,8 +361,9 @@ void tomada_decisao_manual(){
   }
   if(setPoint>=23.75){
     //TESTE COM LED
-    digitalWrite(ventilacao, LOW);
-    digitalWrite(refrigeracao, HIGH); //LED vermelho
+    //digitalWrite(ventilacao, LOW);
+    //digitalWrite(refrigeracao, HIGH); //LED vermelho
+    digitalWrite(RELE, LOW);
     display.drawCircle(40,45,5,WHITE); //ESQ - VENT
     display.fillCircle(100,45,5,WHITE); //DIR - REFRIG
     display.setTextSize(1);
@@ -730,9 +731,10 @@ void config_button(){
         //temperatura_foradafaixa();  
         //tomada_decisao_manual();  
          //LED verde
-        if(average<=22.90){
-          digitalWrite(refrigeracao, LOW); //LED verde 
-          digitalWrite(ventilacao, HIGH);
+        if(average<=24.60){
+          //digitalWrite(refrigeracao, LOW); //LED verde 
+          //digitalWrite(ventilacao, HIGH);
+          digitalWrite(RELE, HIGH);
           display.drawCircle(100,45,5,WHITE); //ESQ - VENT
           display.fillCircle(40,45,5,WHITE); //DIR - REFRIG
           display.setTextSize(1);
@@ -744,9 +746,10 @@ void config_button(){
           display.display();
           delay(250);
         }
-        if(average>=23.00){
-          digitalWrite(ventilacao, LOW);
-          digitalWrite(refrigeracao, HIGH); //LED vermelho
+        if(average>24.60){
+          //digitalWrite(ventilacao, LOW);
+          //digitalWrite(refrigeracao, HIGH); //LED vermelho
+          digitalWrite(RELE, LOW);
           display.drawCircle(40,45,5,WHITE); //ESQ - VENT
           display.fillCircle(100,45,5,WHITE); //DIR - REFRIG
           display.setTextSize(1);
