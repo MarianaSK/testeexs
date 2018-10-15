@@ -34,6 +34,8 @@
   unsigned long PrevMillis        = 0;
   unsigned long Interval          = 1000;
   bool primeiraLeitura = true;
+  String cliente;
+  String temp;
 //------------------------------------------------------------------------------------
 // WIFI Authentication Variables
 //------------------------------------------------------------------------------------
@@ -43,8 +45,8 @@
  * If WIFI dont need Any password Then WiFi.begin("SSIDNAME")
  * If WIFI needs a Password Then WiFi.begin("SSIDNAME", "PASSWORD")
  */
-   char* ESPssid = "testeiot";            // Wifi Name
-   char* ESPpassword = "mkuchida";        // Wifi Password
+   char* ESPssid = "FVMLearning";            // Wifi Name
+   char* ESPpassword = "";        // Wifi Password
   
 //------------------------------------------------------------------------------------
 // WIFI Module Role & Port
@@ -107,7 +109,8 @@
     Serial.println(ESPServerPort);
     // Printing MAC Address
     Serial.print  ("Device MC Address : ");
-    Serial.println(String(WiFi.macAddress()));
+    cliente=String(WiFi.macAddress());
+    Serial.println(cliente);
     // Printing IP Address
     Serial.print  ("Device IP Address : ");
     Serial.println(WiFi.localIP());
@@ -120,8 +123,10 @@
   
   void loop()
   {
+    CheckWiFiConnectivity();
     medirTemperaturaUmidade();
-    Readdht();  
+    Readdht();
+      
   }
 
 //====================================================================================
@@ -149,10 +154,9 @@
           //temp = 22.3;
           LEDState    = !digitalRead(LED1);
           digitalWrite(LED1, LEDState);*/
-          Serial.println   ("<" + ClientType + "-" + LEDState + "> " + "Temperatura: " + temperatura + " Umidade: " + umidade);
-          ESPClient.println(temperatura);
+          Serial.println   ("<" + ClientType + "-" + LEDState + "> " + "Temperatura: " + temperatura + " Umidade: " + umidade + cliente);
+          ESPClient.println(String(temperatura) + " " + String(cliente));
           ESPClient.flush();
-          
         }
       //}
     //}
@@ -187,8 +191,8 @@
     // If Sucessfully Connected Send Connection Message
     if(ESPClient.connect(ESPServer, ESPServerPort))
     {
-      Serial.println    ("<" + ClientType + "- CONNECTED>");
-      ESPClient.println ("<" + ClientType + "- CONNECTED>");
+      Serial.println    ("<" + ClientType + "- CONNECTED>" + cliente);
+      ESPClient.println (cliente);
     }
   }
 
