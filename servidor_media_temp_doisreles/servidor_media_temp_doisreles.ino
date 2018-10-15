@@ -57,6 +57,7 @@
   int  newsetPoint           = 0;
   unsigned long tempo_espera;
   float average;
+  String cliente;
   //--------------------------
  
 //====================================================================================
@@ -283,11 +284,19 @@ void name_weekday(){
     
 }
 void onoff_led(){
-  if ((hour() == 16) && (minute() >= 36) && (weekday() >= 2) && (weekday() <= 6)){
+  if ((hour() == 16) && (minute() >= 34) && (minute() <= 35) && (weekday() >= 2) && (weekday() <= 6)){
     digitalWrite(LED_BUILTIN,0);//ACENDE LED
+    digitalWrite(RELE1,0);
+    digitalWrite(RELE2,0);
+    //delay(1000);
+    //digitalWrite(RELE2,HIGH);
   }
-  if((hour() == 16) && (minute() > 33) && (weekday() >= 2) && (weekday() <= 6)){
+  if((hour() == 16) && (minute() > 39) && (minute() <= 40) && (weekday() >= 2) && (weekday() <= 6)){
     digitalWrite(LED_BUILTIN,1);//APAGA LED
+    digitalWrite(RELE1,1);
+    digitalWrite(RELE2,0);
+    delay(10000);
+    //digitalWrite(RELE2,HIGH);
   }
   delay(1000);
 }
@@ -627,7 +636,8 @@ void config_button(){
           if(ESPClient[i] = ESPServer.available())
           {
             quantityOfNewClients = quantityOfNewClients + 1;
-            Serial.println("New Client: " + ESPClient[i].readStringUntil('\r'));                   
+            cliente=ESPClient[i].readStringUntil('\r');
+            Serial.println("New Client: " + cliente);                   
           }
         }
       }
@@ -668,12 +678,14 @@ void config_button(){
     //check clients for data
     for(uint8_t i = 0; i < MAXSC; i++)
     {
+      cliente=ESPClient[i].readStringUntil('\r');
+      //Serial.println(cliente);
       Serial.print("Exec : ");
       Serial.println(i);   
       bool disponivel = false;
       if (ESPClient[i] && ESPClient[i].connected())
       {     
-             Serial.println("conectado");
+             Serial.println(cliente +" conectado");
             // Waiting for receiving client message 
             while(!ESPClient[i].available() && attemptsByClient != 5){
               delay(2000);    
@@ -689,6 +701,7 @@ void config_button(){
             temperature = stringTemperature.toFloat();
             Serial.print("Temperature: ");
             Serial.println(temperature); 
+            
             sumOfTemperature = sumOfTemperature + temperature;
             quantityOfClientRead = quantityOfClientRead + 1;                     
        }
@@ -735,7 +748,7 @@ void config_button(){
         //temperatura_foradafaixa();  
         //tomada_decisao_manual();  
          //LED verde
-        if(average<=22.50){
+        if(average<=23.50){
           //digitalWrite(refrigeracao, LOW); //LED verde 
           //digitalWrite(ventilacao, HIGH);
           digitalWrite(RELE1, LOW);
@@ -751,7 +764,7 @@ void config_button(){
           display.display();
           delay(250);
         }
-        if(average>22.55){
+        if(average>23.55){
           //digitalWrite(ventilacao, LOW);
           //digitalWrite(refrigeracao, HIGH); //LED vermelho
           digitalWrite(RELE1, LOW);
