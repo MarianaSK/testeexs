@@ -32,8 +32,8 @@
    char*       ESPssid;              // SERVER WIFI NAME
    char*       ESPpassword;          // SERVER PASSWORD
    String      Message[2];              // VARIABLE RECEIVE DATA FROM OTHER CLIENTS
-   const char ssid[] = "Opus-Guest";  //  your network SSID (name)
-   const char pass[] = "";       // your network password
+   const char ssid[] = "My ASUS";  //  your network SSID (name)
+   const char pass[] = "qweqweqwe";       // your network password
 //------------------------------------------------------------------------------------
   #define     MAXSC     2           // MAXIMUM NUMBER OF CLIENTS
   float       temp1;
@@ -71,7 +71,7 @@ int getMinimumSamplingPeriod() {
   }
 //====================================================================================
   // NTP Servers:
-IPAddress timeServer(132, 163, 4, 101); // time-a.timefreq.bldrdoc.gov
+IPAddress timeServer(200,186,125,195); // time-a.timefreq.bldrdoc.gov
 // IPAddress timeServer(132, 163, 4, 102); // time-b.timefreq.bldrdoc.gov
 // IPAddress timeServer(132, 163, 4, 103); // time-c.timefreq.bldrdoc.gov
 
@@ -246,7 +246,7 @@ void sendNTPpacket(IPAddress &address)
   packetBuffer[15]  = 52;
   // all NTP fields have been given values, now
   // you can send a packet requesting a timestamp:                 
-  Udp.beginPacket("pool.ntp.br", 123); //NTP requests are to port 123
+  Udp.beginPacket("c.st1.ntp.br", 123); //NTP requests are to port 123
   Udp.write(packetBuffer, NTP_PACKET_SIZE);
   Udp.endPacket();
 }
@@ -805,10 +805,22 @@ void config_button(){
   void tabelaCliente(){
     String cliente1;
     String cliente2;
-    String poscliente[3][2]={
-      {serverMAC, String(temperatura)},
-      {cliente1, stringTemperature},
-      {cliente2, stringTemperature}
+    int hora;
+    int minuto;
+    int segundo;
+    String stringHora;
+    String stringMinuto;
+    String stringSegundo;
+    hora=hour();
+    minuto=minute();
+    segundo=second();
+    stringHora=String(hora);
+    stringMinuto=String(minuto);
+    stringSegundo=String(segundo);
+    String poscliente[3][5]={
+      {serverMAC, String(temperatura), stringHora, stringMinuto, stringSegundo},
+      {cliente1, stringTemperature, stringHora, stringMinuto, stringSegundo},
+      {cliente2, stringTemperature, stringHora, stringMinuto, stringSegundo}
     };
     if (cliente=="B4:E6:2D:45:74:31"){
       poscliente[1][0]=cliente;
@@ -824,11 +836,20 @@ void config_button(){
       poscliente[2]=cliente2;*/
     
     Serial.print(poscliente[0][0]+" ");
-    Serial.println(poscliente[0][1]);
+    Serial.print(poscliente[0][1]+" ");
+    Serial.print(poscliente[0][2]+":");
+    Serial.print(poscliente[0][3]+":");
+    Serial.println(poscliente[0][4]);
     Serial.print(poscliente[1][0]+" ");
-    Serial.println(poscliente[1][1]);
+    Serial.print(poscliente[1][1]+" ");
+    Serial.print(poscliente[1][2]+":");
+    Serial.print(poscliente[1][3]+":");
+    Serial.println(poscliente[1][4]);
     Serial.print(poscliente[2][0]+" ");
-    Serial.println(poscliente[2][1]);
+    Serial.print(poscliente[2][1]+" ");
+    Serial.print(poscliente[2][2]+":");
+    Serial.print(poscliente[2][3]+":");
+    Serial.println(poscliente[2][4]);
     delay(500);
   }
   
