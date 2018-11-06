@@ -57,11 +57,12 @@
   int  newsetPoint           = 0;
   unsigned long tempo_espera;
   float average;
-  String cliente;
+  String cliente[2];
   String serverMAC;
-  float temperature = 0.0;
+  float temperature[2];
   String stringTemperature;
-  String poscliente[3][2];
+  //String poscliente[3][2];
+  float mediaCliente;
   //String tabelaCliente[20][2];
   //--------------------------
  
@@ -599,7 +600,7 @@ void config_button(){
           if(ESPClient[i] = ESPServer.available())
           {
             quantityOfNewClients = quantityOfNewClients + 1;
-            cliente=ESPClient[i].readStringUntil('\r');
+            cliente[i]=ESPClient[i].readStringUntil('\r');
             Serial.println("New Client: " + cliente[i]);                   
           }
         }
@@ -640,7 +641,7 @@ void config_button(){
     //check clients for data
     for(uint8_t i = 0; i < MAXSC; i++)
     {
-      cliente=ESPClient[i].readStringUntil(' ');
+      cliente[i]=ESPClient[i].readStringUntil(' ');
             
       
       Serial.print("Exec : ");
@@ -648,7 +649,7 @@ void config_button(){
       bool disponivel = false;
       if (ESPClient[i] && ESPClient[i].connected())
       {     
-             Serial.println(cliente+" conectado");
+             Serial.println(cliente[i]+" conectado");
             // Waiting for receiving client message 
             while(!ESPClient[i].available() && attemptsByClient != 5){
               delay(2000);    
@@ -661,11 +662,11 @@ void config_button(){
             stringTemperature = ESPClient[i].readStringUntil('\r');  
             ESPClient[i].flush();
             ESPClient[i].read();
-            temperature = stringTemperature.toFloat();
+            temperature[i] = stringTemperature.toFloat();
             Serial.print("Temperature: ");
-            Serial.println(temperature); 
+            Serial.println(temperature[i]); 
             
-            sumOfTemperature = sumOfTemperature + temperature;
+            sumOfTemperature = sumOfTemperature + temperature[i];
             quantityOfClientRead = quantityOfClientRead + 1;  
             //tabelaCliente();                 
        }
@@ -788,6 +789,9 @@ void config_button(){
      int minutoPassadoC1;
      int minutoPostadoC2;
      int minutoPassadoC2;
+     float controleTemperatura;
+     float controleCliente1;
+     float controleCliente2;
     hora=hour();
     minuto=minute();
     segundo=second();
@@ -796,10 +800,14 @@ void config_button(){
     stringSegundo=String(segundo);
     String poscliente[3][5]={
       {serverMAC, String(temperatura), stringHora, stringMinuto, stringSegundo},
-      {cliente1, ESPClient[0].readStringUntil('\r'), stringHora, stringMinuto, stringSegundo},
-      {cliente2, ESPClient[1].readStringUntil('\r'), stringHora, stringMinuto, stringSegundo}
+      {cliente[0], String(temperature[0]), stringHora, stringMinuto, stringSegundo},
+      {cliente[1], String(temperature[1]), stringHora, stringMinuto, stringSegundo}
     };
-    if (cliente=="B4:E6:2D:45:74:31"){
+    // ====== o que seriam os dados validos? =======
+    if(!cliente[0] || !cliente[1]){
+      
+    }
+    /*if (cliente=="B4:E6:2D:45:74:31"){
       poscliente[1][0]=cliente;
       cliente1=cliente;
       while(!cliente1){
@@ -812,7 +820,7 @@ void config_button(){
       while(!cliente2){
         CheckNewClients();
       }
-    }
+    }*/
 
     
     Serial.print(poscliente[0][0]+" ");
@@ -831,16 +839,30 @@ void config_button(){
     Serial.print(poscliente[2][3]+":");
     Serial.println(poscliente[2][4]);
     delay(500);
+    
+    /*for(int i=0; i<3; i++){
+      for(int j=0; j<5; j++){
+        
+        Serial.println(poscliente[i][j]);
+      }
+    }*/
+    
+    mediaCliente=((poscliente[0][1].toFloat()+poscliente[1][1].toFloat()+poscliente[2][1].toFloat())/3);
+    Serial.print("Media: ");
+    Serial.println(mediaCliente);
+    
     Serial.println("=================================================================================");
 
     /*minutoPostadoC1=poscliente[1][3].toInt();
     minutoPostadoC2=poscliente[2][3].toInt();
     if(minutoPostadoC1){
-      for(minutoPassado=0; minutoPassado<5; minutoPassado++){
+      for(int minutoPassado=0; minutoPassado<5; minutoPassado++){
         CalcAverage();
       }
-    }
-    if((minutoPostadoC1||minutoPostadoC2)>(minutoPassadoC1||minutoPassadoC2)){
+    }else{
+        medirTemperaturaUmidade();
+    }*/
+    /*if((minutoPostadoC1||minutoPostadoC2)>(minutoPassadoC1||minutoPassadoC2)){
       
     }*/
   }
