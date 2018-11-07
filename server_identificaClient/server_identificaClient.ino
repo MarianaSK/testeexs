@@ -673,7 +673,7 @@ void config_button(){
        else 
        {
           Serial.println("desconectado");
-          medirTemperaturaUmidade();
+          //medirTemperaturaUmidade();
           //tomada_decisao_manual();
           Serial.println("Unknown/Unconnected---------");  
           Serial.println("Unknown?");
@@ -762,7 +762,7 @@ void config_button(){
         Serial.println("um ou todos os clientes desconectado(s)");
         Serial.println("Unknown/Unconnected");  
         Serial.println("Unknown?");
-        allNewClientsFound = false;
+        //allNewClientsFound = false;
         /*ESPServer.begin();
         ESPServer.setNoDelay(true);
         Serial.println("Server Started");*/
@@ -785,10 +785,10 @@ void config_button(){
      String stringHora;
      String stringMinuto;
      String stringSegundo;
-     int minutoPostadoC1;
-     int minutoPassadoC1;
-     int minutoPostadoC2;
-     int minutoPassadoC2;
+     int segundoPostadoC1;
+     int segundoPassadoC1;
+     int segundoPostadoC2;
+     int segundoPassadoC2;
      float controleTemperatura;
      float controleCliente1;
      float controleCliente2;
@@ -804,8 +804,32 @@ void config_button(){
       {cliente[1], String(temperature[1]), stringHora, stringMinuto, stringSegundo}
     };
     // ====== o que seriam os dados validos? =======
-    if(!cliente[0] || !cliente[1]){
-      
+    segundoPostadoC1=poscliente[1][4].toInt();
+    segundoPassadoC1=poscliente[1][4].toInt();
+    if(!ESPClient[0] || !(String(temperature[0]))){
+      Serial.println("teste******");
+      for(segundoPassadoC1; segundoPassadoC1<30; segundoPassadoC1++){
+        Serial.println("Se passaram "+String(segundoPassadoC1)+" sem dados válidos");
+        if(ESPClient[0] || (String(temperature[0]))){
+          CalcAverage();
+        }
+      }
+      //medirTemperaturaUmidade();
+      allNewClientsFound = false;
+    }
+
+    segundoPostadoC2=poscliente[2][4].toInt();
+    segundoPassadoC2=poscliente[2][4].toInt();
+    if(!ESPClient[1] || !(String(temperature[1]))){
+       Serial.println("teste******");
+      for(segundoPassadoC2; segundoPassadoC2<30; segundoPassadoC2++){
+        Serial.println("Se passaram "+String(segundoPassadoC2)+" sem dados válidos");
+        if(ESPClient[1] || (String(temperature[1]))){
+          CalcAverage();
+        }
+      //medirTemperaturaUmidade();
+      allNewClientsFound = false;
+      }
     }
     /*if (cliente=="B4:E6:2D:45:74:31"){
       poscliente[1][0]=cliente;
@@ -839,14 +863,7 @@ void config_button(){
     Serial.print(poscliente[2][3]+":");
     Serial.println(poscliente[2][4]);
     delay(500);
-    
-    /*for(int i=0; i<3; i++){
-      for(int j=0; j<5; j++){
-        
-        Serial.println(poscliente[i][j]);
-      }
-    }*/
-    
+  
     mediaCliente=((poscliente[0][1].toFloat()+poscliente[1][1].toFloat()+poscliente[2][1].toFloat())/3);
     Serial.print("Media: ");
     Serial.println(mediaCliente);
@@ -863,8 +880,8 @@ void config_button(){
         medirTemperaturaUmidade();
     }*/
     /*if((minutoPostadoC1||minutoPostadoC2)>(minutoPassadoC1||minutoPassadoC2)){
-      
-    }*/
+    */  
+    
   }
   
 
