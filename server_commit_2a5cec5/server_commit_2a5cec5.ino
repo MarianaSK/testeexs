@@ -64,16 +64,13 @@
   String      stringTemperature;
   //String poscliente[3][2];
   float       mediaCliente;
-  float       somaCliente;
   int         segundoPostadoC1;
   int         segundoPassadoC1=0;
   int         segundoPostadoC2;
   int         segundoPassadoC2=0;
   int         tempoPermitido=30;
   int         tempoLimite;
-  float       sumOfTemperature = 0.0;
-  int         quantityOfClientRead = 0;
-  float       attemptsByClient = 0; 
+  int quantityOfClientRead = 0;
   //String tabelaCliente[20][2];
   //--------------------------
  
@@ -635,8 +632,10 @@ void config_button(){
   {
      Serial.println("media");
      Serial.println("=================================================================================");
-
-     
+     float sumOfTemperature = 0.0;
+     int quantityOfClientRead = 0;
+     float attemptsByClient = 0; 
+     temperatura = dht.readTemperature(false);
     //check clients for data
     for(uint8_t i = 0; i < MAXSC; i++)
     {
@@ -789,95 +788,20 @@ void config_button(){
      float controleTemperatura;
      float controleCliente1;
      float controleCliente2;
-    temperatura = dht.readTemperature(false);
+    
     hora=hour();
     minuto=minute();
     segundo=second();
     stringHora=String(hora);
     stringMinuto=String(minuto);
     stringSegundo=String(segundo);
+    if(ESPClient[0].connected() && ESPClient[1].connected()){
     String poscliente[3][5]={
       {serverMAC, String(temperatura), stringHora, stringMinuto, stringSegundo},
       {cliente[0], String(temperature[0]), stringHora, stringMinuto, stringSegundo},
       {cliente[1], String(temperature[1]), stringHora, stringMinuto, stringSegundo}
-    };
-    // ====== o que seriam os dados validos? =======
-    if(!(ESPClient[0].connected() && ESPClient[1].connected())){
-      String poscliente[1][5]={
-          {serverMAC, String(temperatura), stringHora, stringMinuto, stringSegundo},
-          //{cliente[0], String(temperature[0]), stringHora, stringMinuto, stringSegundo},
-          //{cliente[1], String(temperature[1]), stringHora, stringMinuto, stringSegundo}
-        };
-    Serial.print(poscliente[0][0]+" ");
-    Serial.print(poscliente[0][1]+" ");
-    Serial.print(poscliente[0][2]+":");
-    Serial.print(poscliente[0][3]+":");
-    Serial.println(poscliente[0][4]);
-    delay(500);
-    somaCliente=poscliente[0][1].toFloat();
-    mediaCliente=somaCliente;
-    Serial.print("Soma: ");
-    Serial.println(somaCliente);
-    Serial.print("Media: ");
-    Serial.println(mediaCliente);
+    }; 
     
-    Serial.println("=================================================================================");
- }
- 
- /*if(!(ESPClient[0].connected())){
-  String poscliente[2][5]={
-      {serverMAC, String(temperatura), stringHora, stringMinuto, stringSegundo},
-      //{cliente[0], String(temperature[0]), stringHora, stringMinuto, stringSegundo},
-      {cliente[1], String(temperature[1]), stringHora, stringMinuto, stringSegundo}
-    };
-    Serial.print(poscliente[0][0]+" ");
-    Serial.print(poscliente[0][1]+" ");
-    Serial.print(poscliente[0][2]+":");
-    Serial.print(poscliente[0][3]+":");
-    Serial.println(poscliente[0][4]);
-    Serial.print(poscliente[1][0]+" ");
-    Serial.print(poscliente[1][1]+" ");
-    Serial.print(poscliente[1][2]+":");
-    Serial.print(poscliente[1][3]+":");
-    Serial.println(poscliente[1][4]);
-    delay(500);
-    somaCliente=poscliente[0][1].toFloat()+poscliente[1][1].toFloat();
-    mediaCliente=somaCliente/2;
-    Serial.print("Soma: ");
-    Serial.println(somaCliente);
-    Serial.print("Media: ");
-    Serial.println(mediaCliente);
-    
-    Serial.println("=================================================================================");
- }
- 
- if(!((ESPClient[1].connected()))){
-  String poscliente[2][5]={
-      {serverMAC, String(temperatura), stringHora, stringMinuto, stringSegundo},
-      {cliente[0], String(temperature[0]), stringHora, stringMinuto, stringSegundo},
-      //{cliente[1], String(temperature[1]), stringHora, stringMinuto, stringSegundo}
-    };
-    Serial.print(poscliente[0][0]+" ");
-    Serial.print(poscliente[0][1]+" ");
-    Serial.print(poscliente[0][2]+":");
-    Serial.print(poscliente[0][3]+":");
-    Serial.println(poscliente[0][4]);
-    Serial.print(poscliente[1][0]+" ");
-    Serial.print(poscliente[1][1]+" ");
-    Serial.print(poscliente[1][2]+":");
-    Serial.print(poscliente[1][3]+":");
-    Serial.println(poscliente[1][4]);
-    delay(500);
-    somaCliente=poscliente[0][1].toFloat()+poscliente[1][1].toFloat();
-    mediaCliente=somaCliente/2;
-    Serial.print("Soma: ");
-    Serial.println(somaCliente);
-    Serial.print("Media: ");
-    Serial.println(mediaCliente);
-    
-    Serial.println("=================================================================================");
- }*/
- else{   
     Serial.print(poscliente[0][0]+" ");
     Serial.print(poscliente[0][1]+" ");
     Serial.print(poscliente[0][2]+":");
@@ -894,15 +818,62 @@ void config_button(){
     Serial.print(poscliente[2][3]+":");
     Serial.println(poscliente[2][4]);
     delay(500);
-    somaCliente=poscliente[0][1].toFloat()+poscliente[1][1].toFloat()+poscliente[2][1].toFloat();
-    mediaCliente=somaCliente/3;
-    Serial.print("Soma: ");
-    Serial.println(somaCliente);
+  
+    mediaCliente=((poscliente[0][1].toFloat()+poscliente[1][1].toFloat()+poscliente[2][1].toFloat())/3);
     Serial.print("Media: ");
     Serial.println(mediaCliente);
     
     Serial.println("=================================================================================");
- }
+    }
+     
+    if(ESPClient[0].connected() && !ESPClient[1].connected()){
+    //if (!ESPClient[0].connected() || !ESPClient[1].connected()){
+        String poscliente[2][5]={
+        {serverMAC, String(temperatura), stringHora, stringMinuto, stringSegundo},
+        {cliente[0], String(temperature[0]), stringHora, stringMinuto, stringSegundo},
+        //{cliente[1], String(temperature[1]), stringHora, stringMinuto, stringSegundo}
+      };
+      
+      Serial.print(poscliente[0][0]+" ");
+      Serial.print(poscliente[0][1]+" ");
+      Serial.print(poscliente[0][2]+":");
+      Serial.print(poscliente[0][3]+":");
+      Serial.println(poscliente[0][4]);
+      Serial.print(poscliente[1][0]+" ");
+      Serial.print(poscliente[1][1]+" ");
+      Serial.print(poscliente[1][2]+":");
+      Serial.print(poscliente[1][3]+":");
+      Serial.println(poscliente[1][4]);
+      delay(500);
+    
+      mediaCliente=((poscliente[0][1].toFloat()+poscliente[1][1].toFloat())/2);
+      Serial.print("Media: ");
+      Serial.println(mediaCliente);
+      
+      Serial.println("=================================================================================");
+      //}
+    }
+    
+    if(!ESPClient[0].connected() && !ESPClient[1].connected()){
+      String poscliente[1][5]={
+      {serverMAC, String(temperatura), stringHora, stringMinuto, stringSegundo},
+      //{cliente[0], String(temperature[0]), stringHora, stringMinuto, stringSegundo},
+      //{cliente[1], String(temperature[1]), stringHora, stringMinuto, stringSegundo}
+    };
+    
+    Serial.print(poscliente[0][0]+" ");
+    Serial.print(poscliente[0][1]+" ");
+    Serial.print(poscliente[0][2]+":");
+    Serial.print(poscliente[0][3]+":");
+    Serial.println(poscliente[0][4]);
+    delay(500);
+  
+    mediaCliente=poscliente[0][1].toFloat();
+    Serial.print("Media: ");
+    Serial.println(mediaCliente);
+    
+    Serial.println("=================================================================================");
+    }
   }
   
 
@@ -927,9 +898,9 @@ void botaoSelecao(){
 }
 
 void desligaTermostato(){
-    /*digitalWrite(RELE1,1);
+    digitalWrite(RELE1,1);
     digitalWrite(RELE2,0);
-    delay(3600000);*/
+    delay(3600000);
 }
 
 
