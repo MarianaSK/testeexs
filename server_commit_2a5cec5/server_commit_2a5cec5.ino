@@ -71,6 +71,9 @@
   int         tempoPermitido=30;
   int         tempoLimite;
   int quantityOfClientRead = 0;
+  
+  bool estadoRefrig;
+  bool tempoRefrig;
   //String tabelaCliente[20][2];
   //--------------------------
  
@@ -106,6 +109,7 @@ unsigned int localPort = 8888;  // local port to listen for UDP packets
     pinMode(buttonPin_dec, INPUT);
     //pinMode(LED_BUILTIN, OUTPUT);
     pinMode(RELE1, OUTPUT);
+    
     pinMode(RELE2, OUTPUT);
     pinMode(pinoPulsador, INPUT_PULLUP); //DEFINE A PORTA COMO ENTRADA E ATIVA O RESISTOR INTERNO DE PULL UP
     /*pinMode(ventilacao, OUTPUT);
@@ -351,8 +355,8 @@ void onoff_led(){
 void tomada_decisao_manual(){
  
     exibe_display_manual();
-  
-        if(temperatura<=setPoint){
+    verificaRefrig();
+        if(temperatura<=setPoint && estadoRefrig && tempoRefrig){
         //TESTE COM LED
         //digitalWrite(ventilacao, HIGH);
         //digitalWrite(refrigeracao, LOW); //LED verde 
@@ -635,7 +639,7 @@ void config_button(){
      float sumOfTemperature = 0.0;
      int quantityOfClientRead = 0;
      float attemptsByClient = 0; 
-     temperatura = dht.readTemperature(false);
+     
     //check clients for data
     for(uint8_t i = 0; i < MAXSC; i++)
     {
@@ -788,14 +792,14 @@ void config_button(){
      float controleTemperatura;
      float controleCliente1;
      float controleCliente2;
-    
+    temperatura = dht.readTemperature(false);
     hora=hour();
     minuto=minute();
     segundo=second();
     stringHora=String(hora);
     stringMinuto=String(minuto);
     stringSegundo=String(segundo);
-    if(ESPClient[0].connected() && ESPClient[1].connected()){
+    if(ESPClient[0].connected() && ESPClient[1].connected() && !isnan(temperature[0]) && !isnan(temperature[1])){
     String poscliente[3][5]={
       {serverMAC, String(temperatura), stringHora, stringMinuto, stringSegundo},
       {cliente[0], String(temperature[0]), stringHora, stringMinuto, stringSegundo},
@@ -825,8 +829,9 @@ void config_button(){
     
     Serial.println("=================================================================================");
     }
+
      
-    if(ESPClient[0].connected() && !ESPClient[1].connected()){
+    if((ESPClient[0].connected() && !ESPClient[1].connected()) || isnan(temperature[1])){
     //if (!ESPClient[0].connected() || !ESPClient[1].connected()){
         String poscliente[2][5]={
         {serverMAC, String(temperatura), stringHora, stringMinuto, stringSegundo},
@@ -854,7 +859,63 @@ void config_button(){
       //}
     }
     
-    if(!ESPClient[0].connected() && !ESPClient[1].connected()){
+    if((ESPClient[0].connected() && !ESPClient[1].connected()) || isnan(temperature[0])){
+    //if (!ESPClient[0].connected() || !ESPClient[1].connected()){
+        String poscliente[2][5]={
+        {serverMAC, String(temperatura), stringHora, stringMinuto, stringSegundo},
+        //{cliente[0], String(temperature[0]), stringHora, stringMinuto, stringSegundo},
+        {cliente[1], String(temperature[1]), stringHora, stringMinuto, stringSegundo}
+      };
+      
+      Serial.print(poscliente[0][0]+" ");
+      Serial.print(poscliente[0][1]+" ");
+      Serial.print(poscliente[0][2]+":");
+      Serial.print(poscliente[0][3]+":");
+      Serial.println(poscliente[0][4]);
+      Serial.print(poscliente[1][0]+" ");
+      Serial.print(poscliente[1][1]+" ");
+      Serial.print(poscliente[1][2]+":");
+      Serial.print(poscliente[1][3]+":");
+      Serial.println(poscliente[1][4]);
+      delay(500);
+    
+      mediaCliente=((poscliente[0][1].toFloat()+poscliente[1][1].toFloat())/2);
+      Serial.print("Media: ");
+      Serial.println(mediaCliente);
+      
+      Serial.println("=================================================================================");
+      //}
+    }
+    
+    if((ESPClient[0].connected() && ESPClient[1].connected()) && isnan(temperatura)){
+    //if (!ESPClient[0].connected() || !ESPClient[1].connected()){
+        String poscliente[2][5]={
+        //{serverMAC, String(temperatura), stringHora, stringMinuto, stringSegundo},
+        {cliente[0], String(temperature[0]), stringHora, stringMinuto, stringSegundo},
+        {cliente[1], String(temperature[1]), stringHora, stringMinuto, stringSegundo}
+      };
+      
+      Serial.print(poscliente[0][0]+" ");
+      Serial.print(poscliente[0][1]+" ");
+      Serial.print(poscliente[0][2]+":");
+      Serial.print(poscliente[0][3]+":");
+      Serial.println(poscliente[0][4]);
+      Serial.print(poscliente[1][0]+" ");
+      Serial.print(poscliente[1][1]+" ");
+      Serial.print(poscliente[1][2]+":");
+      Serial.print(poscliente[1][3]+":");
+      Serial.println(poscliente[1][4]);
+      delay(500);
+    
+      mediaCliente=((poscliente[0][1].toFloat()+poscliente[1][1].toFloat())/2);
+      Serial.print("Media: ");
+      Serial.println(mediaCliente);
+      
+      Serial.println("=================================================================================");
+      //}
+    }
+    
+    if((!ESPClient[0].connected() && !ESPClient[1].connected()) || (isnan(temperature[0]) && isnan(temperature[1]))){
       String poscliente[1][5]={
       {serverMAC, String(temperatura), stringHora, stringMinuto, stringSegundo},
       //{cliente[0], String(temperature[0]), stringHora, stringMinuto, stringSegundo},
@@ -903,4 +964,21 @@ void desligaTermostato(){
     delay(3600000);
 }
 
+bool verificaRefrig(){
+  int times=minute();
+  if(times>=times+1){
+    Serial.print("Tempo final: ");
+    Serial.println(times);
+    tempoRefrig = true;
+  }else{
+    estadoRefrig=digitalRead(RELE1);
+    Serial.print("Tempo inicial: ");
+    Serial.println(times);
+  }
+  return estadoRefrig;
+  return tempoRefrig;
+  
+}
+
+//bool tempoRefrig()
 
