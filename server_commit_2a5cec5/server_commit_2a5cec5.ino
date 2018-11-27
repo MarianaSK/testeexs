@@ -71,9 +71,11 @@
   int         tempoPermitido=30;
   int         tempoLimite;
   int quantityOfClientRead = 0;
-  
+  int varTimesAux;
+  int times=minute();
   bool estadoRefrig;
-  bool tempoRefrig;
+  bool tempoRefrigLigada;
+  bool tempoRefrigDesligada;
   //String tabelaCliente[20][2];
   //--------------------------
  
@@ -99,7 +101,8 @@ WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
 //============================================================================
   void setup()
-  {
+  { 
+    
     // Setting The Serial Port
     Serial.begin(115200);           // Computer Communication
     dht.begin();
@@ -109,9 +112,11 @@ unsigned int localPort = 8888;  // local port to listen for UDP packets
     pinMode(buttonPin_dec, INPUT);
     //pinMode(LED_BUILTIN, OUTPUT);
     pinMode(RELE1, OUTPUT);
-    
+    digitalWrite(RELE1, HIGH);
     pinMode(RELE2, OUTPUT);
+    //digitalWrite(RELE2, LOW);
     pinMode(pinoPulsador, INPUT_PULLUP); //DEFINE A PORTA COMO ENTRADA E ATIVA O RESISTOR INTERNO DE PULL UP
+
     /*pinMode(ventilacao, OUTPUT);
     digitalWrite(ventilacao, HIGH); 
     pinMode(refrigeracao, OUTPUT);*/
@@ -353,19 +358,19 @@ void onoff_led(){
 
 //====================================================================================
 void tomada_decisao_manual(){
- 
+    int var;
+    
     exibe_display_manual();
-    verificaRefrig();
-        if(temperatura<=setPoint && estadoRefrig && tempoRefrig){
-        //TESTE COM LED
-        //digitalWrite(ventilacao, HIGH);
-        //digitalWrite(refrigeracao, LOW); //LED verde 
+    tempoRefrigDesligada=true;
+    tempoRefrigLigada=true;
+    
+        if(temperatura<=setPoint && tempoRefrigDesligada){
         
         digitalWrite(RELE1,HIGH);
         digitalWrite(RELE2,HIGH);
         display.drawCircle(100,45,5,WHITE); //ESQ - VENT
         display.fillCircle(40,45,5,WHITE); //DIR - REFRIG
-        
+        //=======================================================
         display.setTextSize(1);
         display.setCursor(30,55);
         display.print("vent");
@@ -374,18 +379,35 @@ void tomada_decisao_manual(){
         display.print("refrig");
         display.display();
         delay(250);
-        Serial.print("desliga refrig");
-        //TESTE COM LED E RELE
-        //digitalWrite(RELE1, HIGH);
-        //digitalWrite(RELE2, LOW);
-        
+        Serial.println("desliga refrig");
+       
+        //=======================================================
+            tempoRefrigLigada = false;
+            
+            if(times==varTimesAux+1){
+              Serial.println("Tempo atingido");
+              tempoRefrigLigada = true;
+              tomada_decisao_manual();
+              //continue;
+            }
+            else{
+              digitalWrite(RELE1, HIGH);
+            }
+            Serial.print("Tempo INICIAL: ");
+            Serial.println(times);
+            Serial.print("Atingiu o tempo de espera [1]SIM [0]NÃO: ");
+            Serial.println(tempoRefrigLigada);
+            Serial.print("Tempo aux");
+            Serial.println(varTimesAux);
+            
       }
-      else{
+      if(temperatura>setPoint && tempoRefrigLigada){
+        var=varTimesAux;
         digitalWrite(RELE1, LOW);
         digitalWrite(RELE2, HIGH);
         display.fillCircle(40,45,5,WHITE); //ESQ - VENT
         display.fillCircle(100,45,5,WHITE); //DIR - REFRIG
-        
+        //=======================================================
         display.setTextSize(1);
         display.setCursor(30,55);
         display.print("vent");
@@ -394,9 +416,30 @@ void tomada_decisao_manual(){
         display.print("refrig");
         display.display();
         delay(250);
-        Serial.print("liga refrig");
+        Serial.println("liga refrig");
+        //=======================================================
+        tempoRefrigDesligada = false;
+        
+        if(times==var+1){
+          Serial.println("Tempo atingido");
+          tempoRefrigDesligada = true;
+          tomada_decisao_manual();
+          //continue;
+        }else{
+          digitalWrite(RELE1, LOW);
+        }
+        Serial.print("Tempo INICIAL: ");
+        Serial.println(times);
+        Serial.print("Atingiu o tempo de espera [1]SIM [0]NÃO: ");
+        Serial.println(tempoRefrigDesligada);
+        //varTimesAux=times;
+        Serial.print("Tempo aux");
+        Serial.println(var);
+        //verificaRefrigDesligada();
+       
       }
-  
+        
+      
 }
 
 //====================================================================================
@@ -939,10 +982,13 @@ void config_button(){
   
 
 void botaoSelecao(){
+  
   if((digitalRead(pinoPulsador) == 0)){ //SE A LEITURA DO PULSADOR FOR IGUAL A 0 "E" VARIÁVEL STATUS IGUAL A 0, FAZ  
     //digitalWrite(pinoRele,HIGH); //RELÉ LIGADO
     //status = 1; //VARIÁVEL RECEBE O VALOR 1
     //st = "ACESA"; //VARIÁVEL RECEBE O TEXTO
+    times=minute();
+    varTimesAux=times;
     medirTemperaturaUmidade();
     tomada_decisao_manual();
     //delay(1000); //INTERVALO DE 200 MILISSEGUNDOS
@@ -959,26 +1005,67 @@ void botaoSelecao(){
 }
 
 void desligaTermostato(){
-    digitalWrite(RELE1,1);
+    /*digitalWrite(RELE1,1);
     digitalWrite(RELE2,0);
-    delay(3600000);
+    delay(3600000);*/
 }
-
-bool verificaRefrig(){
+void verificaRefrigLigada(){
   int times=minute();
-  if(times>=times+1){
-    Serial.print("Tempo final: ");
+  int varTimesAux;
+  
+  if(RELE1==HIGH){
+    tempoRefrigLigada = false;
+    Serial.print("Tempo INICIAL: ");
     Serial.println(times);
-    tempoRefrig = true;
-  }else{
-    estadoRefrig=digitalRead(RELE1);
-    Serial.print("Tempo inicial: ");
-    Serial.println(times);
+    Serial.print("Atingiu o tempo de espera [1]SIM [0]NÃO: ");
+    Serial.println(tempoRefrigLigada);
+    varTimesAux=times;
+    if(times==varTimesAux+1){
+      Serial.println("Tempo atingido");
+      tempoRefrigLigada = true;
+      Serial.print("Tempo INICIAL: ");
+      Serial.println(times);
+      Serial.print("Atingiu o tempo de espera [1]SIM [0]NÃO: ");
+      Serial.println(tempoRefrigLigada);
+      tomada_decisao_manual();
+      //continue;
+    }else{
+      digitalWrite(RELE1, HIGH);
+    }
   }
-  return estadoRefrig;
-  return tempoRefrig;
+  
+
+  //return tempoRefrigLigada;
+  
   
 }
 
-//bool tempoRefrig()
+void verificaRefrigDesligada(){
+  int times=minute();
+  int varTimesAux;
+  
 
+  if(RELE1==LOW){
+    tempoRefrigDesligada = false;
+    Serial.print("Tempo INICIAL: ");
+    Serial.println(times);
+    Serial.print("Atingiu o tempo de espera [1]SIM [0]NÃO: ");
+    Serial.println(tempoRefrigDesligada);
+    varTimesAux=times;
+    if(times==varTimesAux+1){
+      Serial.println("Tempo atingido");
+      tempoRefrigDesligada = true;
+      Serial.print("Tempo INICIAL: ");
+      Serial.println(times);
+      Serial.print("Atingiu o tempo de espera [1]SIM [0]NÃO: ");
+      Serial.println(tempoRefrigDesligada);
+      tomada_decisao_manual();
+      //continue;
+    }else{
+      digitalWrite(RELE1, LOW);
+    }
+  }
+  //return tempoRefrigDesligada;
+  
+  
+}
