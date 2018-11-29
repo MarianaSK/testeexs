@@ -76,8 +76,6 @@
   bool estadoRefrig;
   bool tempoRefrigLigada;
   bool tempoRefrigDesligada;
-
- 
   //String tabelaCliente[20][2];
   //--------------------------
  
@@ -366,7 +364,6 @@ void tomada_decisao_manual(){
     exibe_display_manual();
     tempoRefrigDesligada=true;
     tempoRefrigLigada=true;
-
     
         while(temperatura<=setPoint && tempoRefrigDesligada){
         int timesAux=minute();
@@ -374,7 +371,6 @@ void tomada_decisao_manual(){
         var=varTimesAux;
         
         digitalWrite(RELE1,HIGH);
-        estadoRefrig=false;
         digitalWrite(RELE2,HIGH);
         display.drawCircle(100,45,5,WHITE); //ESQ - VENT
         display.fillCircle(40,45,5,WHITE); //DIR - REFRIG
@@ -405,7 +401,6 @@ void tomada_decisao_manual(){
             temperatura=dht.readTemperature(false);
             var=varTimesAux;
             digitalWrite(RELE1, HIGH);
-            estadoRefrig=false;
             digitalWrite(RELE2,HIGH);
             display.drawCircle(100,45,5,WHITE); //ESQ - VENT
             display.fillCircle(40,45,5,WHITE); //DIR - REFRIG
@@ -432,12 +427,7 @@ void tomada_decisao_manual(){
             Serial.println(temperatura);
             delay(2000);
             if(timesAux>var+3){
-              if(estadoRefrig==false){
-                medirTemperaturaUmidade();
-              }else{
-                break;
-              }
-              
+              break;
             }
           }
           Serial.println("Tempo atingido. O compressor pode ser ligado.");
@@ -463,7 +453,6 @@ void tomada_decisao_manual(){
         var=varTimesAux;
         //medirTemperaturaUmidade();
         digitalWrite(RELE1, LOW);
-        estadoRefrig=true;
         digitalWrite(RELE2, HIGH);
         display.fillCircle(40,45,5,WHITE); //ESQ - VENT
         display.fillCircle(100,45,5,WHITE); //DIR - REFRIG
@@ -521,11 +510,7 @@ void tomada_decisao_manual(){
             Serial.println(temperatura);
             delay(2000);
             if(timesAux>var+3){
-              if(estadoRefrig==true){
-                medirTemperaturaUmidade();
-                break;
-              }
-              
+              break;
             }
           }
           Serial.println("Tempo atingido. O compressor pode ser desligado.");
