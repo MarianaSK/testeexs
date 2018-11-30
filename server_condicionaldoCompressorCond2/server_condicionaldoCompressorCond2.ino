@@ -372,7 +372,7 @@ void tomada_decisao_manual(){
         int timesAux=minute();
         tempoRefrigDesligada = false;
         var=varTimesAux;
-        
+        exibe_display_manual();
         digitalWrite(RELE1,HIGH);
         estadoRefrig=false;
         digitalWrite(RELE2,HIGH);
@@ -403,6 +403,7 @@ void tomada_decisao_manual(){
             //medirTemperaturaUmidade();
             int timesAux=minute();
             temperatura=dht.readTemperature(false);
+            exibe_display_manual();
             var=varTimesAux;
             digitalWrite(RELE1, HIGH);
             estadoRefrig=false;
@@ -431,17 +432,23 @@ void tomada_decisao_manual(){
             Serial.print("Temperatura: ");
             Serial.println(temperatura);
             delay(2000);
-            if(timesAux>var+3){
-              if(estadoRefrig==false){
+            if(timesAux>var+3 && estadoRefrig==false){
+              //ou seja, se não houver mudança de estado o tempo é setado, e permite a entrada de botões
+                tempoRefrigLigada = true;
                 medirTemperaturaUmidade();
-              }else{
+                exibe_display_manual();
                 break;
-              }
+            }    
+            if(timesAux>var+3 && estadoRefrig==true){ //se houver mudança de estado, o tempo também é setado
+                tempoRefrigLigada = true;
+                Serial.println("Tempo atingido. O compressor pode ser ligado.");
+                break;
+            }//aqui ta certo 
               
             }
-          }
-          Serial.println("Tempo atingido. O compressor pode ser ligado.");
-          tempoRefrigLigada = true;
+          
+          
+          
         Serial.print("Tempo INICIAL: ");
         Serial.println(times);
         Serial.print("Atingiu o tempo de espera [1]SIM [0]NÃO: ");
@@ -453,6 +460,7 @@ void tomada_decisao_manual(){
         Serial.println(var);
         Serial.print("Temperatura: ");
         Serial.println(temperatura);
+        exibe_display_manual();
         //verificaRefrigDesligada();
        break;
       }
@@ -461,7 +469,7 @@ void tomada_decisao_manual(){
         int timesAux=minute();
         tempoRefrigDesligada = false;
         var=varTimesAux;
-        //medirTemperaturaUmidade();
+        exibe_display_manual();
         digitalWrite(RELE1, LOW);
         estadoRefrig=true;
         digitalWrite(RELE2, HIGH);
@@ -492,6 +500,7 @@ void tomada_decisao_manual(){
            // medirTemperaturaUmidade();
             int timesAux=minute();
             temperatura=dht.readTemperature(false);
+            exibe_display_manual();
             var=varTimesAux;
             digitalWrite(RELE1, LOW);
             digitalWrite(RELE2, HIGH);
@@ -520,16 +529,20 @@ void tomada_decisao_manual(){
             Serial.print("Temperatura: ");
             Serial.println(temperatura);
             delay(2000);
-            if(timesAux>var+3){
-              if(estadoRefrig==true){
+            if(timesAux>var+3 && estadoRefrig==true){
+                tempoRefrigDesligada = true;
                 medirTemperaturaUmidade();
+                exibe_display_manual();
                 break;
-              }
-              
+            }
+            if(timesAux>var+3 && estadoRefrig==false)  {
+                tempoRefrigDesligada = true;
+                Serial.println("Tempo atingido. O compressor pode ser desligado.");
+                break;
             }
           }
-          Serial.println("Tempo atingido. O compressor pode ser desligado.");
-          tempoRefrigDesligada = true;
+          
+          
         Serial.print("Tempo INICIAL: ");
         Serial.println(times);
         Serial.print("Atingiu o tempo de espera [1]SIM [0]NÃO: ");
@@ -541,6 +554,13 @@ void tomada_decisao_manual(){
         Serial.println(var);
         Serial.print("Temperatura: ");
         Serial.println(temperatura);
+        exibe_display_manual();
+        
+        if(tempoRefrigDesligada == true || tempoRefrigLigada == true){
+          medirTemperaturaUmidade();
+          tomada_decisao_manual();
+        }//mais ou menos certo
+
         //verificaRefrigDesligada();
        break;
       }
