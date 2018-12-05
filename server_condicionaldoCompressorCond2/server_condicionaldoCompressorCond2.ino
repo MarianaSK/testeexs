@@ -72,10 +72,12 @@
   int         tempoLimite;
   int quantityOfClientRead = 0;
   int varTimesAux;
+  int varSegundoAux;
   int times=minute();
+  int timessegundo=second();
   bool estadoRefrig;
-  bool tempoRefrigLigada;
-  bool tempoRefrigDesligada;
+  bool tempoRefrigLigada=false;
+  bool tempoRefrigDesligada=false;
 
  
   //String tabelaCliente[20][2];
@@ -360,53 +362,34 @@ void onoff_led(){
 
 //====================================================================================
 void tomada_decisao_manual(){
+ 
     int var;
-    
+    int varsegundo;
     varTimesAux=times;
+    varSegundoAux=timessegundo;
     exibe_display_manual();
-    tempoRefrigDesligada=true;
-    tempoRefrigLigada=true;
-
-    
-        while(temperatura<=setPoint && tempoRefrigDesligada){
+    int segundoAux=second();
+        if(temperatura<=setPoint){
         int timesAux=minute();
-        tempoRefrigDesligada = false;
+        //tempoRefrigLigada = false;
         var=varTimesAux;
         exibe_display_manual();
+        //TESTE COM LED
+        //digitalWrite(ventilacao, HIGH);
+        //digitalWrite(refrigeracao, LOW); //LED verde 
+        
         digitalWrite(RELE1,HIGH);
         estadoRefrig=false;
         digitalWrite(RELE2,HIGH);
         display.drawCircle(100,45,5,WHITE); //ESQ - VENT
         display.fillCircle(40,45,5,WHITE); //DIR - REFRIG
-        //=======================================================
-        display.setTextSize(1);
-        display.setCursor(30,55);
-        display.print("vent");
-        display.setTextSize(1);
-        display.setCursor(75,55);
-        display.print("refrig");
-        display.display();
-        delay(250);
-        Serial.println("desliga refrig");
-       //=======================================================
-        
-        
-        /*if(var!=timesAux){
-          Serial.println("Tempo atingido");
-          tempoRefrigDesligada = true;
-          
-          //continue;
-        }else{
-          digitalWrite(RELE1, LOW);
-        }*/
-          while(timesAux<=var+3){
+        while(timesAux<=var+3){
             //medirTemperaturaUmidade();
             int timesAux=minute();
             temperatura=dht.readTemperature(false);
             exibe_display_manual();
             var=varTimesAux;
             digitalWrite(RELE1, HIGH);
-            estadoRefrig=false;
             digitalWrite(RELE2,HIGH);
             display.drawCircle(100,45,5,WHITE); //ESQ - VENT
             display.fillCircle(40,45,5,WHITE); //DIR - REFRIG
@@ -432,42 +415,51 @@ void tomada_decisao_manual(){
             Serial.print("Temperatura: ");
             Serial.println(temperatura);
             delay(2000);
-            if(timesAux>var+3 && estadoRefrig==false){
-              //ou seja, se não houver mudança de estado o tempo é setado, e permite a entrada de botões
-                tempoRefrigLigada = true;
-                medirTemperaturaUmidade();
-                exibe_display_manual();
-                break;
-            }    
-            if(timesAux>var+3 && estadoRefrig==true){ //se houver mudança de estado, o tempo também é setado
-                tempoRefrigLigada = true;
-                Serial.println("Tempo atingido. O compressor pode ser ligado.");
-                break;
-            }//aqui ta certo 
-              
+            if(timesAux>var+3){
+              tempoRefrigDesligada=true;
+              Serial.print("Tempo INICIAL: ");
+              Serial.println(times);
+              Serial.print("Atingiu o tempo de espera [1]SIM [0]NÃO: ");
+              Serial.println(tempoRefrigDesligada);
+              Serial.print("Tempo aux");
+              Serial.println(timesAux);
+              Serial.print("Tempo aux");
+              Serial.println(var);
+              Serial.print("Temperatura: ");
+              Serial.println(temperatura);
+              delay(2000);
+              break;
             }
+          }
+          if(tempoRefrigDesligada==true){
+            
+            while(segundoAux%varsegundo==0){
+              int segundoAux=second();
+            varsegundo=varSegundoAux;
+            Serial.print("segundo INICIAL: ");
+            Serial.println(varsegundo);
+            Serial.print("segundo ATUAL: ");
+            Serial.println(varSegundoAux);
+            delay(5000);
+            medirTemperaturaUmidade();
+            yield();
+            exibe_display_manual();
+            if(temperatura<=setPoint && tempoRefrigDesligada==true){
+              Serial.println("pula a condição");
+            continue;
+          }
+          if(temperatura<=setPoint && tempoRefrigDesligada==true){
+            Serial.println("sai da condição");
+            break;
+          }
           
+          }
+          }
           
-          
-        Serial.print("Tempo INICIAL: ");
-        Serial.println(times);
-        Serial.print("Atingiu o tempo de espera [1]SIM [0]NÃO: ");
-        Serial.println(tempoRefrigLigada);
-        //varTimesAux=times;
-        Serial.print("Tempo aux");
-        Serial.println(timesAux);
-        Serial.print("Tempo aux");
-        Serial.println(var);
-        Serial.print("Temperatura: ");
-        Serial.println(temperatura);
-        exibe_display_manual();
-        //verificaRefrigDesligada();
-       break;
       }
-      
-      while(temperatura>setPoint && tempoRefrigLigada){
+      else{
         int timesAux=minute();
-        tempoRefrigDesligada = false;
+        //tempoRefrigLigada = false;
         var=varTimesAux;
         exibe_display_manual();
         digitalWrite(RELE1, LOW);
@@ -475,34 +467,14 @@ void tomada_decisao_manual(){
         digitalWrite(RELE2, HIGH);
         display.fillCircle(40,45,5,WHITE); //ESQ - VENT
         display.fillCircle(100,45,5,WHITE); //DIR - REFRIG
-        //=======================================================
-        display.setTextSize(1);
-        display.setCursor(30,55);
-        display.print("vent");
-        display.setTextSize(1);
-        display.setCursor(75,55);
-        display.print("refrig");
-        display.display();
-        delay(250);
-        Serial.println("liga refrig");
-        //=======================================================
-        
-        
-        /*if(var!=timesAux){
-          Serial.println("Tempo atingido");
-          tempoRefrigDesligada = true;
-          
-          //continue;
-        }else{
-          digitalWrite(RELE1, LOW);
-        }*/
-          while(timesAux<=var+3){
+        while(timesAux<=var+3){
            // medirTemperaturaUmidade();
             int timesAux=minute();
             temperatura=dht.readTemperature(false);
             exibe_display_manual();
             var=varTimesAux;
             digitalWrite(RELE1, LOW);
+            estadoRefrig=true;
             digitalWrite(RELE2, HIGH);
             display.fillCircle(40,45,5,WHITE); //ESQ - VENT
             display.fillCircle(100,45,5,WHITE); //DIR - REFRIG
@@ -521,7 +493,7 @@ void tomada_decisao_manual(){
             Serial.print("Tempo INICIAL: ");
             Serial.println(times);
             Serial.print("Atingiu o tempo de espera [1]SIM [0]NÃO: ");
-            Serial.println(tempoRefrigDesligada);
+            Serial.println(tempoRefrigLigada);
             Serial.print("Tempo aux");
             Serial.println(timesAux);
             Serial.print("Tempo aux");
@@ -529,43 +501,49 @@ void tomada_decisao_manual(){
             Serial.print("Temperatura: ");
             Serial.println(temperatura);
             delay(2000);
-            if(timesAux>var+3 && estadoRefrig==true){
-                tempoRefrigDesligada = true;
-                medirTemperaturaUmidade();
-                exibe_display_manual();
-                break;
-            }
-            if(timesAux>var+3 && estadoRefrig==false)  {
-                tempoRefrigDesligada = true;
-                Serial.println("Tempo atingido. O compressor pode ser desligado.");
-                break;
+            if(timesAux>var+3){
+              tempoRefrigLigada=true;
+              Serial.print("Tempo INICIAL: ");
+              Serial.println(times);
+              Serial.print("Atingiu o tempo de espera [1]SIM [0]NÃO: ");
+              Serial.println(tempoRefrigLigada);
+              Serial.print("Tempo aux");
+              Serial.println(timesAux);
+              Serial.print("Tempo aux");
+              Serial.println(var);
+              Serial.print("Temperatura: ");
+              Serial.println(temperatura);
+              delay(2000);
+              break;
             }
           }
+          if(tempoRefrigLigada=true){
+            
+          while(segundoAux%varsegundo==0){
+            int segundoAux=second();
+            varsegundo=varSegundoAux;
+            Serial.print("segundo INICIAL: ");
+            Serial.println(varsegundo);
+            Serial.print("segundo ATUAL: ");
+            Serial.println(varSegundoAux);
+            delay(5000);
+            medirTemperaturaUmidade();
+            yield();
+            exibe_display_manual();
+            if(temperatura>setPoint && tempoRefrigLigada==true){
+              Serial.println("pula condição");
+            continue;
+          }
+            if(temperatura<=setPoint && tempoRefrigLigada==true){
+              Serial.println("sai da condição");
+              break;
+            }
+          }
+       }
           
-          
-        Serial.print("Tempo INICIAL: ");
-        Serial.println(times);
-        Serial.print("Atingiu o tempo de espera [1]SIM [0]NÃO: ");
-        Serial.println(tempoRefrigDesligada);
-        //varTimesAux=times;
-        Serial.print("Tempo aux");
-        Serial.println(timesAux);
-        Serial.print("Tempo aux");
-        Serial.println(var);
-        Serial.print("Temperatura: ");
-        Serial.println(temperatura);
-        exibe_display_manual();
-        
-        if(tempoRefrigDesligada == true || tempoRefrigLigada == true){
-          medirTemperaturaUmidade();
-          tomada_decisao_manual();
-        }//mais ou menos certo
 
-        //verificaRefrigDesligada();
-       break;
       }
-        
-      
+  
 }
 
 //====================================================================================
@@ -604,6 +582,9 @@ void medirTemperaturaUmidade() {
     Serial.print("Temperatura ajustada para ");
     Serial.print(temperatura);
     Serial.println(" C");
+    config_button();
+          //retorno_button();
+    yield();
   }
   
   
@@ -1109,6 +1090,7 @@ void config_button(){
 
 void botaoSelecao(){
    times=minute();
+   timessegundo=second();
   if((digitalRead(pinoPulsador) == 0)){ //SE A LEITURA DO PULSADOR FOR IGUAL A 0 "E" VARIÁVEL STATUS IGUAL A 0, FAZ  
     //digitalWrite(pinoRele,HIGH); //RELÉ LIGADO
     //status = 1; //VARIÁVEL RECEBE O VALOR 1
